@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>JJM Forwarding Letter</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 40px;
+      background-color: #f8f8f8;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      max-width: 800px;
+      margin: auto;
+      box-shadow: 0 0 10px #ccc;
+    }
+    .header {
+      text-align: center;
+      border-bottom: 2px solid black;
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+    }
+    .header img {
+      height: 60px;
+      margin-bottom: 10px;
+    }
+    input, textarea, select {
+      width: 100%;
+      padding: 8px;
+      margin: 5px 0 15px;
+      font-size: 16px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    table, th, td {
+      border: 1px solid #444;
+    }
+    th, td {
+      padding: 8px;
+      text-align: left;
+    }
+    .buttons {
+      text-align: right;
+      margin-top: 20px;
+    }
+    button {
+      padding: 10px 15px;
+      margin-left: 10px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body onload="autoFill()">
+  <div class="container" id="letterContent">
+    <div class="header">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/Seal_of_Assam.svg/1200px-Seal_of_Assam.svg.png" alt="APDCL Logo">
+      <h3>ASSAM POWER DISTRIBUTION COMPANY LIMITED</h3>
+      <p><strong>CIN:</strong> U40109AS2003SGC007242</p>
+      <p><strong>OFFICE OF THE SUB-DIVISIONAL ENGINEER</strong><br>
+      HOWRAGHAT ELECTRICAL SUB-DIVISION, HOWRAGHAT, KARBI ANGLONG</p>
+    </div>
+
+    <p>
+      No: <input type="text" id="letterNo"> &nbsp;&nbsp;&nbsp;&nbsp;
+      Date: <input type="date" id="letterDate">
+    </p>
+
+    <p>To,<br>
+    <input type="text" value="The Asst. General Manager" /><br>
+    <input type="text" value="Howraghat Electrical Division" /><br>
+    <input type="text" value="Howraghat, Karbi Anglong" /></p>
+
+    <p><strong>Subject:</strong> <input type="text" value="Forwarding of provisional Estimate."></p>
+
+    <p>Sir/Madam,<br>
+    With reference to the subject cited above, I have the honour to submit the provisional Estimate for 11/0.4 25 KVA SS for providing power supply to The Executive Engg (PHE) under JJM in respect of the mentioned location under Howraghat ESD which are as follows:</p>
+
+    <label for="jjmSelect">Select JJM Project:</label>
+    <select id="jjmSelect" onchange="fillJJMTable()">
+      <option value="">-- Select --</option>
+      <option value="Langhat Tokbi|The Executive Engg (PHE), c/o Langhat Tokbi JJM|907600.70|39316.00">Langhat Tokbi</option>
+      <option value="Phonglok|The Executive Engg (PHE), c/o Phonglok JJM|812500.50|34500.00">Phonglok</option>
+      <option value="Rongkhang|The Executive Engg (PHE), c/o Rongkhang JJM|675000.00|29850.00">Rongkhang</option>
+    </select>
+
+    <table id="jjmTable">
+      <thead>
+        <tr>
+          <th>Sl. No</th>
+          <th>Name of JJM</th>
+          <th>Name of Location</th>
+          <th>Estimated Amount</th>
+          <th>Amount to be deposited to APDCL</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td contenteditable="true">The Executive Engg (PHE), c/o Langhat Tokbi JJM</td>
+          <td contenteditable="true">Langhat Tokbi</td>
+          <td contenteditable="true">907600.70</td>
+          <td contenteditable="true">39316.00</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>Yours faithfully,<br><br>
+    <strong>Sub-Divisional Engineer</strong><br>
+    Howraghat Electrical Sub-Division<br>
+    APDCL (CAR): Howraghat</p>
+
+    <p><strong>Enclosed:</strong><br>
+    Single line diagram<br>
+    Power sanction<br>
+    Provisional estimate</p>
+  </div>
+
+  <div class="buttons">
+    <button onclick="exportToPDF()">📄 Export to PDF</button>
+    <button onclick="exportToWord()">📃 Export to Word</button>
+  </div>
+
+  <script>
+    function autoFill() {
+      document.getElementById("letterDate").valueAsDate = new Date();
+      const today = new Date();
+      const year = today.getFullYear();
+      const letterNo = `APDCL/SDE/HESD/${year}-${year + 1}/PR-01`;
+      document.getElementById("letterNo").value = letterNo;
+    }
+
+    function fillJJMTable() {
+      const value = document.getElementById("jjmSelect").value;
+      if (!value) return;
+      const [location, name, estimate, deposit] = value.split("|");
+      const tbody = document.querySelector("#jjmTable tbody");
+      tbody.innerHTML = `
+        <tr>
+          <td>1</td>
+          <td contenteditable="true">${name}</td>
+          <td contenteditable="true">${location}</td>
+          <td contenteditable="true">${estimate}</td>
+          <td contenteditable="true">${deposit}</td>
+        </tr>`;
+    }
+
+    async function exportToPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.html(document.getElementById("letterContent"), {
+        callback: function (pdf) {
+          pdf.save("JJM_Forwarding_Letter.pdf");
+        },
+        x: 10,
+        y: 10,
+        width: 180
+      });
+    }
+
+    function exportToWord() {
+      const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Export HTML to Word Document</title></head><body>";
+      const footer = "</body></html>";
+      const sourceHTML = header + document.getElementById("letterContent").innerHTML + footer;
+      const source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(sourceHTML);
+      const fileDownload = document.createElement("a");
+      document.body.appendChild(fileDownload);
+      fileDownload.href = source;
+      fileDownload.download = 'JJM_Forwarding_Letter.doc';
+      fileDownload.click();
+      document.body.removeChild(fileDownload);
+    }
+  </script>
+</body>
+</html>

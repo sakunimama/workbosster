@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Forwarded Letters - Workbooster</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f2f2f2;
+      padding: 40px;
+    }
+    .container {
+      background-color: white;
+      max-width: 1000px;
+      margin: auto;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px #ccc;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    form input, form select, form button {
+      display: block;
+      width: 100%;
+      margin: 10px 0;
+      padding: 10px;
+      font-size: 16px;
+    }
+    #subjectInput {
+      display: none;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 30px;
+    }
+    table, th, td {
+      border: 1px solid #ccc;
+    }
+    th, td {
+      padding: 10px;
+      text-align: left;
+    }
+    .back-button, .export-button {
+      margin-top: 20px;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      cursor: pointer;
+      border-radius: 5px;
+      margin-right: 10px;
+    }
+    .action-btn {
+      margin-right: 5px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>📤 Forwarded Letters</h1>
+
+    <form id="forwardForm">
+      <input type="hidden" id="editIndex">
+      <input type="text" id="letterNo" placeholder="Letter No." required />
+
+      <select id="subjectSelect" required onchange="handleSubjectChange()">
+        <option value="" disabled selected>Select Subject</option>
+        <option value="Meter Testing under T&C Division, KANCH">Meter Testing under T&C Division, KANCH</option>
+        <option value="Forwarding of Provisional Estimate">Forwarding of Provisional Estimate</option>
+        <option value="Meter Requisition along with Utilization Report">Meter Requisition along with Utilization Report</option>
+        <option value="Other">Other (Type manually)</option>
+      </select>
+
+      <input type="text" id="subjectInput" placeholder="Enter Subject" />
+
+      <input type="date" id="date" required />
+
+      <select id="designation" required>
+        <option value="" disabled selected>Select Designation</option>
+        <option value="Assistant General Manager">Assistant General Manager</option>
+        <option value="Chief Executive Officer">Chief Executive Officer</option>
+        <option value="Area Manager">Area Manager</option>
+      </select>
+
+      <select id="office" required>
+        <option value="" disabled selected>Select Office</option>
+        <option value="Howraghat Division">Howraghat Division</option>
+        <option value="KANCH">KANCH</option>
+        <option value="IRCA">IRCA</option>
+      </select>
+
+      <input type="text" id="remarks" placeholder="Remarks" />
+      <button type="submit">Save Entry</button>
+    </form>
+
+    <h2>📑 Forwarding Records</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Letter No</th>
+          <th>Subject</th>
+          <th>Date</th>
+          <th>Forwarded To</th>
+          <th>Remarks</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="forwardTableBody"></tbody>
+    </table>
+
+    <button class="export-button" onclick="exportToCSV()">📥 Export to Excel</button>
+    <button class="export-button" onclick="exportToPDF()">📄 Export to PDF</button>
+    <button class="back-button" onclick="window.location.href='dashboard.html'">⬅ Back to Dashboard</button>
+  </div>
+
+  <script>
+    const form = document.getElementById("forwardForm");
+    const tableBody = document.getElementById("forwardTableBody");
+
+    function handleSubjectChange() {
+      const select = document.getElementById("subjectSelect");
+      const input = document.getElementById("subjectInput");
+
+      if (select.value === "Other") {
+        input.style.display = "block";
+        input.required = true;
+      } else {
+        input.style.display = "none";
+        input.required = false;
+      }
+    }
+
+    function loadForwardings() {
+      const entries = JSON.parse(localStorage.getItem("forwardings") || "[]");
+      tableBody.innerHTML = "";
+      entries.forEach((entry, index) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${entry.letterNo}</td>
+          <td>${entry.subject}</td>
+          <td>${entry.date}</td>
+          <td>${entry.forwardedTo}</td>
+          <td>${entry.remarks}</td>
+          <td>
+            <button class="action-btn" onclick="editEntry(${index})">✏️ Edit</button>
+            <button class="action-btn" onclick="deleteEntry(${index})">🗑️ Delete</button>
+          </td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const entries = JSON.parse(localStorage.getItem("forwardings") || "[]");
+      const subject = document.getElementById("subjectSelect").value === "Other"
+        ? document.getElementById("subjectInput").value
+        : document.getElementById("subjectSelect").value;
+
+      const newEntry = {
+        letterNo: document.getElementById("letterNo").value,
+        subject: subject,
+        date: document.getElementById("date").value,
+        forwardedTo: document.getElementById("designation").value + ", " + document.getElementById("office").value,
+        remarks: document.getElementById("remarks").value
+      };
+
+      const editIndex = document.getElementById("editIndex").value;
+      if (editIndex) {
+        entries[editIndex] = newEntry;
+        document.getElementById("editIndex").value = "";
+      } else {
+        entries.push(newEntry);
+      }
+
+      localStorage.setItem("forwardings", JSON.stringify(entries));
+      form.reset();
+      document.getElementById("subjectInput").style.display = "none";
+      loadForwardings();
+    });
+
+    function editEntry(index) {
+      const entries = JSON.parse(localStorage.getItem("forwardings") || "[]");
+      const entry = entries[index];
+      document.getElementById("editIndex").value = index;
+      document.getElementById("letterNo").value = entry.letterNo;
+      document.getElementById("date").value = entry.date;
+      document.getElementById("remarks").value = entry.remarks;
+
+      const [designation, office] = entry.forwardedTo.split(", ");
+      document.getElementById("designation").value = designation;
+      document.getElementById("office").value = office;
+
+      const subjectSelect = document.getElementById("subjectSelect");
+      const subjectInput = document.getElementById("subjectInput");
+
+      if ([...subjectSelect.options].some(o => o.value === entry.subject)) {
+        subjectSelect.value = entry.subject;
+        subjectInput.style.display = "none";
+        subjectInput.value = "";
+      } else {
+        subjectSelect.value = "Other";
+        subjectInput.style.display = "block";
+        subjectInput.value = entry.subject;
+      }
+    }
+
+    function deleteEntry(index) {
+      const entries = JSON.parse(localStorage.getItem("forwardings") || "[]");
+      entries.splice(index, 1);
+      localStorage.setItem("forwardings", JSON.stringify(entries));
+      loadForwardings();
+    }
+
+    function exportToCSV() {
+      const entries = JSON.parse(localStorage.getItem("forwardings") || "[]");
+      let csv = "Letter No,Subject,Date,Forwarded To,Remarks\n";
+      entries.forEach(e => {
+        csv += `${e.letterNo},"${e.subject}",${e.date},${e.forwardedTo},"${e.remarks}"\n`;
+      });
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "forwardings.csv";
+      a.click();
+    }
+
+    async function exportToPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const entries = JSON.parse(localStorage.getItem("forwardings") || "[]");
+      let y = 10;
+      doc.setFontSize(12);
+      doc.text("Forwarded Letters Report", 10, y);
+      y += 10;
+      entries.forEach((e, i) => {
+        doc.text(`${i + 1}. ${e.letterNo} | ${e.subject} | ${e.date} | ${e.forwardedTo} | ${e.remarks}`, 10, y);
+        y += 10;
+        if (y > 270) {
+          doc.addPage();
+          y = 10;
+        }
+      });
+      doc.save("forwardings.pdf");
+    }
+
+    loadForwardings();
+  </script>
+</body>
+</html>
+

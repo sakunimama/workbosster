@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Workbooster - Dashboard</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <h1>Welcome to Workbooster</h1>
+
+    <h2>Main Modules</h2>
+    <div class="card-grid">
+      <a href="tasks.html" class="card">📋 Tasks</a>
+      <a href="bills.html" class="card">🧾 Bills</a>
+      <a href="checklist.html" class="card">✅ Checklist</a>
+      <a href="reports.html" class="card">📄 Reports</a>
+      <a href="database.html" class="card">📂 Database</a>
+      <a href="load_security.html" class="card">⚡ Load Security Calculation</a>
+
+    </div>
+
+    <h2 style="margin-top: 50px;">Letters & Forwardings</h2>
+    <div class="card-grid">
+      <a href="letters.html" class="card">📬 Letter Register</a>
+      <a href="forwardings.html" class="card">📤 Forwarded Letters</a>
+    </div>
+
+    <button onclick="logout()" class="logout-btn">🚪 Logout</button>
+  </div>
+
+  <script>
+    function logout() {
+      window.location.href = "index.html";
+    }
+  </script>
+</body>
+</html>
+
